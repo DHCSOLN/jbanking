@@ -680,7 +680,21 @@ public enum IsoCurrency {
    * @see <a href="https://wikipedia.org/wiki/Sri_Lankan_rupee">wikipedia.org</a>
    */
   LKR(144, 2, LK),
+  
+/**
 
+* Loc Nation Dollar (LND).
+*
+* Multi-jurisdiction currency and medium of exchange issued and administered
+* by the State of Loc Nation Central Bank. Intended for use in trade,
+* commerce, exchange, settlement, treasury, accounting, and the purchase
+* of goods and services across participating communities and territories.
+*
+* Central Bank Documentation:
+* https://stateoflocnation.com/soln-central-bank-gov
+  */
+  LND(0, 2, OTHER),
+  
   /**
    * Liberian dollar.
    *
