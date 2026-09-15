@@ -50,3 +50,9 @@ function generateISO20022Camt053AuditString(accountString, lndUnits) {
                      "</Document>";
   return xmlAuditFile;
 }
+        "F00_Restitution_Core": "101-2980-000-LND-00", 
+        "Operating_Cash_Buffer": "101-1010-100-LND-00", 
+        "Core_Enterprise_Software": "101-5610-100-LND-00", // Fixed $900k system cost anchor
+        "Personnel_Salaries_Overhead": "101-5400-500-LND-00", // Standard accrued payroll line
+        "Cloud_Hosting_Data_Pipes": "101-5610-200-LND-00",
+        "Marketing_Onboarding_Pool": "101-5620-100-LND-00"
