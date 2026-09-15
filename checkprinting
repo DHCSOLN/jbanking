@@ -1,0 +1,82 @@
+/**
+ * SOLNGPBC Core Banking Integration Module
+ * Sovereign Check Generation and Layout Printer
+ * 
+ * Target: Formats and outputs machine-readable checks from the
+ * OFFICIAL SOLN TREASURY clearing node (Master Routing Node 061000609).
+ */
+
+var BANK_ROUTING_NUMBER = "061000609";
+var SYSTEM_CURRENCY_CODE = "LND";
+var FIAT_CONVERSION_MULTIPLIER = 750;
+
+/**
+ * Sweeps the TXN_CHECKS ledger sheet and prints the latest unissued check record.
+ */
+function processAndPrintLatestCheck() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var checkSheet = ss.getSheetByName("TXN_CHECKS");
+  
+  if (!checkSheet) {
+    SpreadsheetApp.getUi().alert("ERROR: 'TXN_CHECKS' register sheet tab not found. Please create it first.");
+    return;
+  }
+  
+  var dataRange = checkSheet.getDataRange();
+  var rows = dataRange.getValues();
+  if (rows.length <= 1) {
+    SpreadsheetApp.getUi().alert("NOTICE: Check register is empty. No line items available to print.");
+    return;
+  }
+  
+  // Grab the absolute last row appended to the ledger matrix
+  var lastRowIndex = rows.length - 1;
+  var latestRow = rows[lastRowIndex];
+  
+  var glAccount = String(latestRow[0]).trim();
+  var amountLND = Number(latestRow[1]) || 0;
+  var checkSerial = String(latestRow[3]).trim();
+  var recipientEmail = String(latestRow[4]).trim();
+  
+  var amountUSD = amountLND * FIAT_CONVERSION_MULTIPLIER;
+  
+  // Safety Check: Enforce standard 1.00 LND single velocity threshold
+  if (amountLND > 1.00) {
+    SpreadsheetApp.getUi().alert("PRINT BLOCK: Check amount exceeds the maximum 1.00 LND velocity limit.");
+    return;
+  }
+  
+  // Render the official sovereign corporate check block layout string
+  var checkLayout = 
+    "================================================================================\n" +
+    " OFFICIAL SOLN TREASURY                                CHECK SERIAL: " + checkSerial + "\n" +
+    " STATE OF LOC NATION JURISDICTION                      DATE: " + new Date().toLocaleDateString() + "\n" +
+    "--------------------------------------------------------------------------------\n" +
+    " PAY TO THE                                                                     \n" +
+    " ORDER OF: " + recipientEmail + "               AMOUNT: " + amountLND.toFixed(2) + " " + SYSTEM_CURRENCY_CODE + " MAIN\n" +
+    "                                                       ($" + amountUSD.toLocaleString() + ".00 USD Equiv)\n" +
+    "                                                                                \n" +
+    " CHARGE SEGMENT CODE: " + glAccount + " (GAAP/FASAB Compliant Line)\n" +
+    "--------------------------------------------------------------------------------\n" +
+    " MEMO: Core Enterprise System Allocation Funding Outlay                         \n" +
+    "                                                                                \n" +
+    " ⑆" + BANK_ROUTING_NUMBER + "⑆  ⑈" + glAccount.replace(/-/g, "") + "⑈  " + checkSerial.replace(/\D/g, "") + "\n" +
+    "================================================================================";
+  
+  // Log inside your execution console
+  Logger.log(checkLayout);
+  
+  // Display clean printable text view window inside your active spreadsheet layout
+  var ui = SpreadsheetApp.getUi();
+  ui.alert("⚡ OFFICIAL SOLN TREASURY - Check Generation Success", "Your check has been structured successfully:\n\n" + checkLayout, ui.ButtonSet.OK);
+}
+
+/**
+ * Extends your custom dashboard menu items on launch.
+ */
+function extendSovereignCheckMenu() {
+  SpreadsheetApp.getUi().createMenu("⚡ SOLN Unified Engine")
+    .addItem("Execute Global Reconciliation Sweep", "recalculateAndInjectLiquidity")
+    .addItem("🖨️ Print Latest Ledger Check", "processAndPrintLatestCheck")
+    .addToUi();
+}
