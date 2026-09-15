@@ -1,0 +1,52 @@
+/**
+ * SOLNGPBC Multi-Platform Universal Ledger Plug-In
+ * Target: Hardcodes the 'LND' fiat token into external software database structures
+ */
+
+const RECON_CONVERSION_RATE = 750;
+
+function getPlatformInitializationPayload() {
+  return {
+    "TargetCurrency": {
+      "CurrencyCode": "LND",
+      "CurrencyName": "Loc Nation Dollar / Black Dollar",
+      "SubUnit": "Cent",
+      "ScaleMultiplier": 100, 
+      "FixedParityUSD": RECON_CONVERSION_RATE
+    },
+    "ChartOfAccountsSegments": {
+      "Format": "XXX-XXXX-XXX-XXX-XX",
+      "CompanyCode": "101", 
+      "ProductString": "LND", 
+      "NaturalAccounts": {
+        "F00_Restitution_Core": "101-2980-000-LND-00", 
+        "Operating_Cash_Buffer": "101-1010-100-LND-00", 
+        "Insurance_Reserves_NSF": "101-2200-200-LND-00", 
+        "City_Budget_Donation": "101-6100-600-LND-00",   
+        "State_Budget_Donation": "101-6200-600-LND-00",  
+        "Federal_Budget_Donation": "101-6300-600-LND-00" 
+      }
+    }
+  };
+}
+
+function generateISO20022Camt053AuditString(accountString, lndUnits) {
+  var timestamp = Utilities.formatDate(new Date(), "GMT", "yyyy-MM-dd'T'HH:mm:ss'Z'");
+  var xmlAuditFile = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+                     "<Document xmlns=\"urn:iso:std:iso:20022:tech:xsd:camt.053.001.10\">\n" +
+                     "  <BkToCstmrStmt>\n" +
+                     "    <Stmt>\n" +
+                     "      <Id>SOLN-AUDIT-" + timestamp + "</Id>\n" +
+                     "      <Acct>\n" +
+                     "        <Id><Othr><Id>" + accountString + "</Id></Othr></Id>\n" +
+                     "        <Ccy>LND</Ccy>\n" + 
+                     "      </Acct>\n" +
+                     "      <Bal>\n" +
+                     "        <Amt Ccy=\"LND\">" + lndUnits + "</Amt>\n" +
+                     "        <Tp><CdOrPrft><Cd>OPBD</Cd></CdOrPrft></Tp>\n" + 
+                     "      </Bal>\n" +
+                     "    </Stmt>\n" +
+                     "  </BkToCstmrStmt>\n" +
+                     "</Document>";
+  return xmlAuditFile;
+}
