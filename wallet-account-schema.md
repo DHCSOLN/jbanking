@@ -1,0 +1,11 @@
+walletId
+participantId
+operationType
+routingNumber
+accountNumber
+accountType
+assignmentStatus
+assignedAt
+assignedBy
+sourceSheet
+sourceRow
