@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org",
+  "title": "DHCSOLN_Universal_Asset_and_Identity_Whitelist",
+  "type": "object",
+  "properties": {
+    "whitelist_status": { "type": "string" },
+    "currencies": { "type": "array" },
+    "verified_identities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": { "type": "string" },
+          "title_authority": { "type": "string" },
+          "whitelisted_websites": { "type": "array", "items": { "type": "string" } },
+          "whitelisted_emails": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["name", "whitelisted_websites", "whitelisted_emails"]
+      }
+    }
+  },
+  "required": ["whitelist_status", "currencies", "verified_identities"]
+}
