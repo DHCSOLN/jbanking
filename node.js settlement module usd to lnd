@@ -1,0 +1,26 @@
+// Node.js Settlement Module (LND to USD)
+const BigNumber = require('bignumber.js'); 
+
+const PARITY_RATE = new BigNumber(750); // 1 LND = 750 USD
+
+/**
+ * Converts LND amount back to exact USD for bank clearance
+ * @param {string|number} lndAmount - The ledger micro-unit balance (e.g., 0.461333)
+ * @returns {string} USD amount string fixed to 2 decimal places for banking
+ */
+function convertLndToUsdForSettlement(lndAmount) {
+    const lnd = new BigNumber(lndAmount);
+    
+    // Multiply LND by the fixed 750 rate
+    const usdAmount = lnd.multipliedBy(PARITY_RATE);
+    
+    // Round to standard bank cents (2 decimals) using HALF_UP standard banking rounding
+    return usdAmount.toFixed(2, BigNumber.ROUND_HALF_UP); 
+}
+
+// Example Execution matching Sandbox Ledger:
+const ledgerLND = "0.461333";
+const finalPayoutUSD = convertLndToUsdForSettlement(ledgerLND);
+
+console.log(`Processing Outbound Settlement: ${ledgerLND} LND ➡️ $${finalPayoutUSD} USD`);
+// Output: Processing Outbound Settlement: 0.461333 LND ➡️ \$346.00 USD
