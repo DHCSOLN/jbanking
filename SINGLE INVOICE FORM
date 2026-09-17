@@ -1,0 +1,25 @@
+async function submitSingleInvoice() {
+  const payload = {
+    direction: document.getElementById('currencyDirection').value, // "USD_TO_LND" or "LND_TO_USD"
+    amount: document.getElementById('amountInput').value,          // e.g. 346.00
+    vendorName: document.getElementById('vendorNameInput').value,  // "GEORGIA POWER"
+    routingNumber: document.getElementById('routingInput').value,  // "61000609"
+    targetWallet: "LND-9CB971D86EE6414B",
+    makerStatus: "PASS",
+    checkerStatus: "PASS"
+  };
+
+  try {
+    const response = await fetch('/api/settle/execute-settlement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    
+    const receipt = await response.json();
+    alert(`Success! Invoice Settled. Receipt ID: ${receipt.receipt_id}`);
+    renderReceiptUI(receipt); // Display receipt frame to user
+  } catch (err) {
+    console.error("Single clearance error: ", err);
+  }
+}
