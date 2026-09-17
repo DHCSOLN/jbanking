@@ -1,3 +1,4 @@
+
 name: Deploy State of Loc Nation App
 
 on:
@@ -9,7 +10,7 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  deploy-job:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,26 +18,22 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Securely store and upload the deployment assets
-      - name: Upload Deployment Artifacts
+      # 2. Verify index.html exists in the runner
+      - name: Check File Presence
+        run: |
+          ls -la
+          if [ ! -f index.html ]; then
+            echo "ERROR: index.html was not found in the root directory!"
+            exit 1
+          fi
+
+      # 3. Securely store and upload only the dashboard file
+      - name: Upload Dashboard File
         uses: actions/upload-artifact@v5
         with:
           name: soln-production-build
-          path: .
+          path: index.html
           retention-days: 7
-
-  deploy:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      # 3. Retrieve deployment artifact files
-      - name: Download Build Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: soln-production-build
-          path: ./dist
 
       # 4. Release command hook
       - name: Deploy to Web Server
