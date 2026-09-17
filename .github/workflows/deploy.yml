@@ -12,26 +12,17 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    env:
-      DEPLOY_DOMAIN: "stateoflocnation.com"
-
     steps:
-      # 1. Check out code using clean paths
+      # 1. Clean code repository checkout
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      # 2. Verify Live Domain DNS / Reachability before archive
-      - name: Verify Live Domain Setup
-        run: |
-          echo "Verifying DNS status for $DEPLOY_DOMAIN..."
-          nslookup $DEPLOY_DOMAIN || echo "Warning: Domain lookup failed. Proceeding..."
-
-      # 3. Securely Upload the index.html artifact (Uses v5 to fix deprecation warnings!)
+      # 2. Securely store and upload the deployment assets
       - name: Upload Deployment Artifacts
         uses: actions/upload-artifact@v5
         with:
           name: soln-production-build
-          path: . # Uploads everything in your main directory, including index.html
+          path: .
           retention-days: 7
 
   deploy:
@@ -40,13 +31,14 @@ jobs:
     if: github.ref == 'refs/heads/main'
 
     steps:
+      # 3. Retrieve deployment artifact files
       - name: Download Build Artifacts
         uses: actions/download-artifact@v4
         with:
           name: soln-production-build
           path: ./dist
 
-      # Your specific static hosting deployment dispatch command goes here
+      # 4. Release command hook
       - name: Deploy to Web Server
         run: |
-          echo "Deploying production build directory straight to stateoflocnation.com..."
+          echo "Deploying production assets straight to stateoflocnation.com..."
