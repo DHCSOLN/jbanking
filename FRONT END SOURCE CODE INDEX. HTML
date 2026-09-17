@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOLN Central Bank Clearing Window</title>
+    <!-- Tailwind CSS for high-fidelity UI -->
+    <script src="https://jsdelivr.net"></script>
+    <style>
+        .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-slate-100 font-sans antialiased p-6">
+
+    <div class="max-w-5xl mx-auto space-y-6">
+        <!-- Dashboard Header -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900/80 border border-slate-800 p-6 rounded-2xl backdrop-blur-md gap-4">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                    🏛️ SOLN Treasury Window
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">Sovereign Clearance & Automated Settlement Infrastructure</p>
+            </div>
+            <!-- Global Jurisdiction Toggle -->
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 flex items-center gap-3">
+                <label class="relative inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="jurisdictionToggle" class="sr-only peer" onchange="toggleJurisdictionScope()">
+                    <div class="w-11 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-400 after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-indigo-600 peer-checked:after:bg-emerald-400"></div>
+                </label>
+                <div>
+                    <span class="text-xs uppercase tracking-wider block font-semibold text-slate-400">Scope Context</span>
+                    <span id="jurisdictionLabel" class="text-sm font-bold text-amber-500">OUTSIDE JURISDICTION (USD Only)</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <!-- Left 2 Columns: Input Controls -->
+            <div class="lg:col-span-2 space-y-6">
+                
+                <!-- Tab Headers -->
+                <div class="flex bg-slate-900/60 p-1.5 rounded-xl border border-slate-800 gap-2">
+                    <button id="tabSingleBtn" onclick="switchTab('single')" class="flex-1 py-2.5 text-sm font-medium rounded-lg transition-all bg-indigo-600 text-white shadow-sm">
+                        Single Entry Form
+                    </button>
+                    <button id="tabBatchBtn" onclick="switchTab('batch')" class="flex-1 py-2.5 text-sm font-medium rounded-lg transition-all text-slate-400 hover:text-slate-200">
+                        Batch CSV Processing
+                    </button>
+                </div>
+
+                <!-- Tab 1: Single Entry -->
+                <div id="panelSingle" class="bg-slate-900/40 border border-slate-800/80 p-6 rounded-2xl backdrop-blur-sm space-y-4">
+                    <h3 class="text-lg font-semibold text-white">Point A: Operational Telemetry</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Direction Corridor</label>
+                            <select id="txDirection" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl focus:border-indigo-500 outline-none" onchange="updateMathLabels()">
+                                <option value="LND_TO_USD">LND ➡️ USD (Standard Outbound Bill Pay)</option>
+                                <option value="USD_TO_LND" id="optUsdToLnd" disabled class="text-slate-600 bg-slate-950/50">USD ➡️ LND (Requires Jurisdiction)</option>
+                                <option value="LND_TO_LND" id="optLndToLnd" disabled class="text-slate-600 bg-slate-950/50">LND ➡️ LND (Requires Jurisdiction)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label id="inputAmountLabel" class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Input Amount (LND)</label>
+                            <input type="number" id="txAmount" placeholder="0.000000" step="any" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl focus:border-indigo-500 outline-none" oninput="calculateRealtimeExchange()">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Vendor Entity Name</label>
+                            <input type="text" id="txVendor" placeholder="e.g. GEORGIA POWER" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl focus:border-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Routing Transit Number</label>
+                            <input type="text" id="txRouting" value="61000609" class="w-full bg-slate-950 border border-slate-800 p-3 rounded-xl focus:border-indigo-500 outline-none">
+                        </div>
+                    </div>
+
+                    <!-- Real-time Mathematical Calculator Readout -->
+                    <div class="bg-indigo-950/30 border border-indigo-900/50 p-4 rounded-xl flex justify-between items-center">
+                        <div>
+                            <span class="text-xs text-indigo-300 block font-medium uppercase tracking-wider">Point B Expected Settlement Target</span>
+                            <span id="calculatedOutput" class="text-xl font-mono font-bold text-emerald-400">$0.00 USD</span>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-500 block">Rate Model</span>
+                            <span class="text-xs font-mono bg-slate-950 px-2.5 py-1 border border-slate-800 rounded-md inline-block mt-0.5">1 LND = 750 USD</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Batch Processing (Hidden by default) -->
+                <div id="panelBatch" class="hidden bg-slate-900/40 border border-slate-800/80 p-6 rounded-2xl backdrop-blur-sm space-y-4">
+                    <h3 class="text-lg font-semibold text-white">Bulk File Grid Ingestion</h3>
+                    <p class="text-xs text-slate-400">Drop your settlement CSV rows directly into the pipeline window. System processes rows through the microtransaction rounding checks automatically.</p>
+                    
+                    <div class="border-2 border-dashed border-slate-800 hover:border-indigo-500 transition-colors rounded-xl p-8 text-center bg-slate-950/50 cursor-pointer relative">
+                        <input type="file" id="csvFilePicker" accept=".csv" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleFileSelection(event)">
+                        <div class="space-y-2">
+                            <span class="text-3xl block">📥</span>
+                            <span class="text-sm font-medium text-slate-300 block" id="uploadStatusText">Select or Drag Settlement CSV Template</span>
+                            <span class="text-xs text-slate-500 block">Columns required: direction, amount, vendorName, routingNumber</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Control Gates & Dual-Auth Signoff -->
+            <div class="space-y-6">
+                <div class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl backdrop-blur-md space-y-4">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800 pb-2 flex items-center gap-1.5">
+                        🛡️ Dual-Custody Safeguards
+                    </h3>
+                    
+                    <!-- Maker Gateway Toggle -->
+                    <div class="flex justify-between items-center p-3 bg-slate-950 rounded-xl border border-slate-800">
+                        <div>
+                            <span class="text-sm font-medium text-white block">Maker Operational Clearance</span>
+                            <span class="text-xs text-slate-500">Transaction structural input verified</span>
+                        </div>
+                        <input type="checkbox" id="gateMaker" class="w-5 h-5 accent-indigo-500" onchange="evaluateClearingReleaseState()">
+                    </div>
+
+                    <!-- Checker Gateway Toggle -->
+                    <div class="flex justify-between items-center p-3 bg-slate-950 rounded-xl border border-slate-800">
+                        <div>
+                            <span class="text-sm font-medium text-white block">Checker Audit Release</span>
+                            <span class="text-xs text-slate-500">Treasury account balance checked</span>
+                        </div>
+                        <input type="checkbox" id="gateChecker" class="w-5 h-5 accent-indigo-500" onchange="evaluateClearingReleaseState()">
+                    </div>
+
+                    <!-- Dispatch Trigger Button -->
