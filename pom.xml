@@ -70,6 +70,11 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+<dependency>
+    <groupId>com.dhcsoln</groupId>
+    <artifactId>jbanking-extension</artifactId>
+    <version>1.0.0</version>
+</dependency>
 
   <build>
     <plugins>
