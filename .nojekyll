@@ -1,0 +1,3 @@
+git rm main.java
+git commit -m "fix(clean): remove duplicate lowercase main.java to fix runner pathing"
+git push origin main
