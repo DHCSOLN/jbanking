@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
@@ -7,32 +8,29 @@
     <version>3.0.2</version>
   </parent>
 
+  <!-- Enforces your custom organizational namespace for institutional distribution -->
+  <groupId>com.dhcsoln</groupId>
   <artifactId>jbanking</artifactId>
   <version>4.4.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>${project.artifactId}</name>
-  <description>A banking API for Java.</description>
-  <url>http://jbanking.marcwrobel.fr</url>
-  <inceptionYear>2013</inceptionYear>
+  <description>An enterprise-grade banking and validation API extension framework based on jbanking.</description>
+  <url>https://github.com</url>
+  <inceptionYear>2026</inceptionYear>
 
   <properties>
     <this.java.version>1.8</this.java.version>
-    <!-- Remove once Maven has been updated on GitPod -->
     <this.maven.version.enforced>[3.8.6,)</this.maven.version.enforced>
-
     <guava.version>33.5.0-jre</guava.version>
     <nv-i18n.version>1.29</nv-i18n.version>
     <strata.version>2.12.66</strata.version>
-
-    <!-- 2.17+ requires java 11+ -->
     <formatter-maven-plugin.version>2.16.0</formatter-maven-plugin.version>
-
-    <!-- https://maven.apache.org/guides/mini/guide-reproducible-builds.html -->
     <project.build.outputTimestamp>1762773442</project.build.outputTimestamp>
   </properties>
 
   <dependencies>
+    <!-- Test Rigor Dependencies -->
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
@@ -70,11 +68,6 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-<dependency>
-    <groupId>com.dhcsoln</groupId>
-    <artifactId>jbanking-extension</artifactId>
-    <version>1.0.0</version>
-</dependency>
 
   <build>
     <plugins>
@@ -89,7 +82,8 @@
         <configuration>
           <archive>
             <manifestEntries>
-              <Automatic-Module-Name>fr.marcwrobel.jbanking</Automatic-Module-Name>
+              <!-- Updates automatic module name to clear namespace collision flags -->
+              <Automatic-Module-Name>com.dhcsoln.banking</Automatic-Module-Name>
             </manifestEntries>
           </archive>
         </configuration>
