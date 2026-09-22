@@ -1,0 +1,45 @@
+name: Deploy State of Loc Nation App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger directly from your Actions tab
+
+# Set permissions of the GITHUB_TOKEN to allow clean deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment to avoid stuck queue backlogs
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy-job:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Disable Jekyll Parser
+        # Bypasses folder naming conflicts and raw script file scans
+        run: touch .nojekyll
+
+      - name: Setup GitHub Pages Environment
+        uses: actions/configure-pages@v5
+
+      - name: Upload Static Web Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # Targets the exact root directory where your renamed index.html lives
+          path: '.'
+
+      - name: Deploy to GitHub Pages Infrastructure
+        id: deployment
+        uses: actions/deploy-pages@v4
