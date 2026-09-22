@@ -1,0 +1,66 @@
+name: Deploy State of Loc Nation App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch: # Allows manual trigger directly from your Actions tab
+
+# Set permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment to avoid stuck queue backlogs
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  deploy-job:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Verify Website Entrypoint
+        run: |
+          if [ ! -f index.html ]; then
+            echo "ERROR: index.html was not found in the repository root."
+            echo "Rename 'FRONT END SOURCE CODE INDEX. HTML' to 'index.html'."
+            exit 1
+          fi
+
+          echo "SUCCESS: index.html is present."
+
+      - name: Prepare Secure Static Website
+        run: |
+          mkdir -p _site
+          cp index.html _site/index.html
+          touch _site/.nojekyll
+
+          echo "Prepared website files:"
+          find _site -maxdepth 2 -type f -print
+
+      - name: Disable Jekyll Parser
+        # Bypasses Jekyll processing and naming conflicts
+        run: touch _site/.nojekyll
+
+      - name: Setup GitHub Pages Environment
+        uses: actions/configure-pages@v5
+
+      - name: Upload Static Web Artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          # Publishes only the prepared public website
+          path: "./_site"
+
+      - name: Deploy to GitHub Pages Infrastructure
+        id: deployment
+        uses: actions/deploy-pages@v4
