@@ -75,6 +75,11 @@ never expose the local server directly to the public internet.
 There are no payment-submission routes. These endpoints only append and report
 provider events.
 
+For file-based ACH path setup and state semantics, see
+[ACH File Processing](ACH-FILE-PROCESSING.md). Local outbox directories are
+prepared, but the ACH provider adapter is not configured and dispatch remains
+disabled.
+
 ## Mutual Handshake Execution
 
 To create a fresh transaction-bound session for each record in the ignored
@@ -120,6 +125,21 @@ all seven ISO 20022 checkpoints (`pacs.008`, five `pacs.002` statuses, and
 events copied into an import without provider verification are
 `REPORTED_UNVERIFIED`. It exits with status `2` while records are blocked and
 never changes payment status or submits payments.
+
+For an all-or-nothing finalization attempt, run:
+
+```sh
+node solnfx/finalize-settlement.js
+```
+
+The finalizer only writes `settlementStatus: "CONFIRMED"` after every commerce
+record has matching final GPI `pacs.002/ACSC` and PMI `camt.054/CRDT` events,
+valid UETR and end-to-end linkage, the same cryptographic handshake session,
+final reconciliation evidence, and approval from an institution-approved
+module exporting `verifyProviderSettlement`. Configure that trusted module with
+`SOLNFX_SETTLEMENT_VERIFIER_MODULE`; do not point it at an unreviewed file. If
+any record is incomplete or the verifier is absent, no record is changed. The
+script performs an atomic replacement only after all records pass.
 Tests use the synthetic [commerce example](fixtures/commerce-ledger.example.json),
 not the Git-ignored Codespace ledger. The default run reads the local vault file;
 pass a different path as the first argument to inspect another import.

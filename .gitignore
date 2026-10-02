@@ -30,3 +30,15 @@ release.properties
 /VAULT/RECEIPTS/solnfx-reported-endpoint-acks.json
 /VAULT/RECEIPTS/solnfx-events.jsonl
 /VAULT/RECEIPTS/solnfx-handshake-sessions.jsonl
+/VAULT/RECEIPTS/solnfx-initial-commerce-requests.json
+/VAULT/OUTBOX/ACH/
+/VAULT/INBOX/ACH_ACKS/
+/VAULT/INBOX/APTEXX_EXPORTS/
+/VAULT/INBOX/VERIZON_EXPORTS/
+/VAULT/INBOX/NAVY_FEDERAL_EXPORTS/
+/VAULT/INBOX/GEORGIA_POWER_EXPORTS/
+/VAULT/QUARANTINE/ACH/
+/VAULT/RECEIPTS/verizon-monthly-intake.json
+/VAULT/RECEIPTS/navy-federal-billpay-intake.json
+/VAULT/RECEIPTS/georgia-power-intake.json
+/VAULT/RECEIPTS/solnfx-monthly-payment-drafts.json

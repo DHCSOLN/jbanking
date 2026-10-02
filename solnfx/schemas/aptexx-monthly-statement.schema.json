@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://solnfx.local/schemas/aptexx-monthly-statement.schema.json",
+  "title": "SOLNFX Normalized Aptexx Monthly Statement",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "provider",
+    "statementRef",
+    "statementDate",
+    "unit",
+    "leasePeriod",
+    "currency",
+    "balanceDueMinorUnits",
+    "lineItems",
+    "sourceFileSha256",
+    "sourceVerification"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "provider": { "const": "APTEXX" },
+    "statementRef": { "type": "string", "minLength": 1 },
+    "statementDate": { "type": "string", "format": "date" },
+    "unit": { "type": "string", "minLength": 1 },
+    "leasePeriod": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start", "end"],
+      "properties": {
+        "start": { "type": "string", "format": "date" },
+        "end": { "type": "string", "format": "date" }
+      }
+    },
+    "currency": { "const": "USD" },
+    "balanceDueMinorUnits": { "type": "integer", "minimum": 0 },
+    "amountEnclosedMinorUnits": {
+      "type": ["integer", "null"],
+      "minimum": 0
+    },
+    "lineItems": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["date", "description", "category", "amountMinorUnits"],
+        "properties": {
+          "date": { "type": "string", "format": "date" },
+          "description": { "type": "string", "minLength": 1 },
+          "category": {
+            "enum": ["RENT", "RECURRING_FEE", "VARIABLE_UTILITY", "ONE_TIME_FEE", "OTHER"]
+          },
+          "servicePeriod": { "type": ["string", "null"] },
+          "amountMinorUnits": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "sourceFileSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "sourceVerification": {
+      "enum": ["USER_EXPORT_NOT_REVIEWED", "USER_EXPORT_REVIEWED"]
+    }
+  }
+}
