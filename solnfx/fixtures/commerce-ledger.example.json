@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "ledger": "SOLNFX Settlement Example",
+  "source": "SYNTHETIC_EXAMPLE",
+  "reportedTransactionType": "COMMERCE",
+  "records": [
+    {
+      "paymentRef": "SAMPLE-COMMERCE-001",
+      "reportedEndpointResult": "EXAMPLE_ONLY",
+      "verificationStatus": "PENDING_PROVIDER_EVIDENCE",
+      "settlementStatus": "NOT_CONFIRMED",
+      "gpiUetr": null,
+      "gpiEvidenceRef": null,
+      "pmiEvidenceRef": null
+    },
+    {
+      "paymentRef": "SAMPLE-COMMERCE-002",
+      "reportedEndpointResult": "EXAMPLE_ONLY",
+      "verificationStatus": "PENDING_PROVIDER_EVIDENCE",
+      "settlementStatus": "NOT_CONFIRMED",
+      "gpiUetr": null,
+      "gpiEvidenceRef": null,
+      "pmiEvidenceRef": null
+    },
+    {
+      "paymentRef": "SAMPLE-COMMERCE-003",
+      "reportedEndpointResult": "EXAMPLE_ONLY",
+      "verificationStatus": "PENDING_PROVIDER_EVIDENCE",
+      "settlementStatus": "NOT_CONFIRMED",
+      "gpiUetr": null,
+      "gpiEvidenceRef": null,
+      "pmiEvidenceRef": null
+    }
+  ]
+}

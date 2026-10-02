@@ -27,3 +27,5 @@ release.properties
 *.springBeans
 *.swp
 .DS_Store
+/VAULT/RECEIPTS/solnfx-reported-endpoint-acks.json
+/VAULT/RECEIPTS/solnfx-events.jsonl
