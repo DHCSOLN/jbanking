@@ -35,7 +35,28 @@ test('classifies synthetic commerce records and blocks missing evidence', () => 
     assert.ok(record.blockers.includes('GPI_PROVIDER_EVIDENCE_MISSING'));
     assert.ok(record.blockers.includes('PMI_CLEARING_EVIDENCE_MISSING'));
     assert.ok(record.blockers.includes('FINAL_RECONCILIATION_EVIDENCE_MISSING'));
+    assert.ok(record.blockers.includes('ISO_20022_LIFECYCLE_NOT_PROVIDER_VERIFIED'));
+    assert.equal(record.iso20022Lifecycle.length, 7);
+    assert.ok(record.iso20022Lifecycle.every((checkpoint) => checkpoint.evidenceStatus === 'NOT_EVIDENCED'));
   }
+});
+
+test('reported ISO events remain unverified until a provider verifier validates them', () => {
+  const ledger = {
+    reportedTransactionType: 'COMMERCE',
+    records: [{
+      paymentRef: 'SYNTHETIC-COMMERCE-REPORTED',
+      iso20022Events: [{
+        source: 'SWIFT_GPI',
+        isoMessageType: 'pacs.008.001.08',
+        isoStatusCode: 'INIT'
+      }]
+    }]
+  };
+  const report = buildExecutionReport(ledger, EXAMPLE_LEDGER_PATH);
+
+  assert.equal(report.records[0].iso20022Lifecycle[0].evidenceStatus, 'REPORTED_UNVERIFIED');
+  assert.equal(report.records[0].settlementStatus, 'NOT_CONFIRMED');
 });
 
 test('rejects malformed ledger input', () => {

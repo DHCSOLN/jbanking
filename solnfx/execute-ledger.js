@@ -12,6 +12,42 @@ const DEFAULT_LEDGER_PATH = path.join(
   'solnfx-reported-endpoint-acks.json'
 );
 const UETR_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const ISO_20022_LIFECYCLE = [
+  { source: 'SWIFT_GPI', messageType: 'pacs.008.001.08', statusCode: 'INIT', stage: 'SUBMITTED' },
+  { source: 'SWIFT_GPI', messageType: 'pacs.002.001.12', statusCode: 'RCVD', stage: 'SUBMITTED' },
+  { source: 'SWIFT_GPI', messageType: 'pacs.002.001.12', statusCode: 'ACTC', stage: 'IN_PROGRESS' },
+  { source: 'SWIFT_GPI', messageType: 'pacs.002.001.12', statusCode: 'ACCP', stage: 'IN_PROGRESS' },
+  { source: 'SWIFT_GPI', messageType: 'pacs.002.001.12', statusCode: 'ACSP', stage: 'IN_PROGRESS' },
+  { source: 'SWIFT_GPI', messageType: 'pacs.002.001.12', statusCode: 'ACSC', stage: 'SETTLED' },
+  { source: 'SOLN_PMI', messageType: 'camt.054.001.08', statusCode: 'CRDT', stage: 'SETTLED' }
+];
+
+function mapIso20022Lifecycle(record) {
+  const events = Array.isArray(record.iso20022Events) ? record.iso20022Events : [];
+
+  return ISO_20022_LIFECYCLE.map((checkpoint, index) => {
+    const matches = events.filter((event) =>
+      event.source === checkpoint.source &&
+      event.isoMessageType === checkpoint.messageType &&
+      event.isoStatusCode === checkpoint.statusCode
+    );
+    let evidenceStatus = 'NOT_EVIDENCED';
+    if (matches.length === 1) {
+      evidenceStatus = 'REPORTED_UNVERIFIED';
+    } else if (matches.length > 1) {
+      evidenceStatus = 'AMBIGUOUS_DUPLICATE_EVENTS';
+    }
+
+    return {
+      step: index + 1,
+      source: checkpoint.source,
+      messageType: checkpoint.messageType,
+      statusCode: checkpoint.statusCode,
+      expectedStage: checkpoint.stage,
+      evidenceStatus
+    };
+  });
+}
 
 function inspectGitVisibility(filePath) {
   const relativePath = path.relative(REPO_ROOT, path.resolve(filePath));
@@ -46,6 +82,7 @@ function analyzeRecord(record, ledgerType, seenPaymentRefs) {
 
   const blockers = [];
   const transactionType = record.reportedTransactionType || ledgerType || 'UNSPECIFIED';
+  const lifecycle = mapIso20022Lifecycle(record);
 
   if (transactionType !== 'COMMERCE') {
     blockers.push('TRANSACTION_TYPE_NOT_CONFIRMED_COMMERCE');
@@ -75,11 +112,15 @@ function analyzeRecord(record, ledgerType, seenPaymentRefs) {
   if (record.settlementStatus !== 'CONFIRMED') {
     blockers.push('SETTLEMENT_NOT_CONFIRMED');
   }
+  if (lifecycle.some((checkpoint) => checkpoint.evidenceStatus !== 'PROVIDER_VERIFIED')) {
+    blockers.push('ISO_20022_LIFECYCLE_NOT_PROVIDER_VERIFIED');
+  }
 
   return {
     paymentRef: record.paymentRef || null,
     transactionType,
     reportedEndpointResult: record.reportedEndpointResult || null,
+    iso20022Lifecycle: lifecycle,
     status: blockers.length === 0 ? 'READY_FOR_PROVIDER_ADAPTER' : 'BLOCKED',
     settlementStatus: 'NOT_CONFIRMED',
     blockers
@@ -138,4 +179,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { buildExecutionReport, inspectGitVisibility, run };
+module.exports = { buildExecutionReport, inspectGitVisibility, mapIso20022Lifecycle, run };

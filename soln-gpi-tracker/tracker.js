@@ -85,6 +85,8 @@ class SolnGpiTracker {
       paymentRef: payment.paymentRef,
       uetr: payment.uetr,
       latestStage: latestEvent ? latestEvent.stage : null,
+      latestHandshakeSessionId: latestEvent ? latestEvent.handshakeSessionId || null : null,
+      latestSessionKeyFingerprint: latestEvent ? latestEvent.sessionKeyFingerprint || null : null,
       events
     };
   }
@@ -131,6 +133,15 @@ class SolnGpiTracker {
     if (event.endToEndId && (typeof event.endToEndId !== 'string' || !event.endToEndId.trim())) {
       throw new Error('End-to-end ID must be a non-empty string.');
     }
+    if (event.handshakeSessionId && !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(event.handshakeSessionId)) {
+      throw new Error('Handshake session ID must be a UUID version 4.');
+    }
+    if (event.sessionKeyFingerprint && !/^[a-f0-9]{64}$/i.test(event.sessionKeyFingerprint)) {
+      throw new Error('Handshake key fingerprint must be a SHA-256 hex digest.');
+    }
+    if (event.endpointStateProof && !/^[a-f0-9]{64}$/i.test(event.endpointStateProof)) {
+      throw new Error('Endpoint state proof must be a SHA-256 HMAC hex digest.');
+    }
 
     return {
       source: event.source,
@@ -143,6 +154,9 @@ class SolnGpiTracker {
       ...(event.isoMessageType ? { isoMessageType: event.isoMessageType } : {}),
       ...(event.isoStatusCode ? { isoStatusCode: event.isoStatusCode } : {}),
       ...(event.endToEndId ? { endToEndId: event.endToEndId.trim() } : {}),
+      ...(event.handshakeSessionId ? { handshakeSessionId: event.handshakeSessionId } : {}),
+      ...(event.sessionKeyFingerprint ? { sessionKeyFingerprint: event.sessionKeyFingerprint.toLowerCase() } : {}),
+      ...(event.endpointStateProof ? { endpointStateProof: event.endpointStateProof.toLowerCase() } : {}),
       observedAt: new Date(event.observedAt).toISOString()
     };
   }

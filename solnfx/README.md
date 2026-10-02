@@ -75,6 +75,28 @@ never expose the local server directly to the public internet.
 There are no payment-submission routes. These endpoints only append and report
 provider events.
 
+## Mutual Handshake Execution
+
+To create a fresh transaction-bound session for each record in the ignored
+local ledger, set the separate `SOLN_GPI_HANDSHAKE_SECRET` and
+`SOLN_PMI_HANDSHAKE_SECRET` Codespace secrets (each at least 32 bytes), then
+run:
+
+```sh
+node solnfx/execute-mutual-handshake.js
+```
+
+The runner performs ephemeral X25519 key agreement, checks GPI and PMI
+role-specific HMAC proofs, and confirms both endpoint-state proofs against the
+same session key. It writes one `HANDSHAKE_CONFIRMED` event per component into
+the shared pipeline log and appends a redacted receipt to the ignored
+`VAULT/RECEIPTS/solnfx-handshake-sessions.jsonl`. The events share the session
+ID and key fingerprint; the receipt stores only the fingerprint, never the
+session key. Transaction and settlement status are not modified. The handshake
+is local and in-process; it does not contact a remote SWIFT or PMI service. Use
+mutually pinned endpoint identity keys and an approved secure transport before
+treating remote peers as authenticated.
+
 The SHA-256 chain detects accidental or unsophisticated edits; it is not a
 signature, a tamper-proof ledger, or a replacement for a protected database.
 The injected verifiers must validate actual provider signatures/statuses; the
@@ -92,8 +114,12 @@ Run a non-mutating ledger preflight with:
 node solnfx/execute-ledger.js
 ```
 
-The preflight reports the Git-ignore reason and per-record evidence blockers.
-It exits with status `2` while records are blocked and never submits payments.
+The preflight reports the Git-ignore reason, per-record evidence blockers, and
+all seven ISO 20022 checkpoints (`pacs.008`, five `pacs.002` statuses, and
+`camt.054`). Checkpoints without matching event records are `NOT_EVIDENCED`;
+events copied into an import without provider verification are
+`REPORTED_UNVERIFIED`. It exits with status `2` while records are blocked and
+never changes payment status or submits payments.
 Tests use the synthetic [commerce example](fixtures/commerce-ledger.example.json),
 not the Git-ignored Codespace ledger. The default run reads the local vault file;
 pass a different path as the first argument to inspect another import.

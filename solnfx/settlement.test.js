@@ -41,6 +41,22 @@ test('combines both handshakes without reporting settlement', async () => {
   assert.equal(settlement.get('synthetic-payment-1').status, 'HANDSHAKE_CONFIRMED');
 });
 
+test('rejects handshakes that do not share a session ID and key fingerprint', async () => {
+  const { gpiTracker, pmiTracker, settlement } = createSystem();
+  const sessionFields = {
+    handshakeSessionId: '550e8400-e29b-41d4-a716-446655440000',
+    sessionKeyFingerprint: 'a'.repeat(64)
+  };
+
+  await gpiTracker.recordProviderEvent(event('SWIFT_GPI', 'HANDSHAKE_CONFIRMED', 'gpi-match-1', sessionFields));
+  await pmiTracker.recordProviderEvent(event('SOLN_PMI', 'HANDSHAKE_CONFIRMED', 'pmi-mismatch-1', {
+    ...sessionFields,
+    sessionKeyFingerprint: 'b'.repeat(64)
+  }));
+
+  assert.equal(settlement.get('synthetic-payment-1').status, 'HANDSHAKE_MISMATCH');
+});
+
 test('reports settlement only after both verified components are settled', async () => {
   const { gpiTracker, pmiTracker, settlement } = createSystem();
 

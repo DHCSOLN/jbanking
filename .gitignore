@@ -29,3 +29,4 @@ release.properties
 .DS_Store
 /VAULT/RECEIPTS/solnfx-reported-endpoint-acks.json
 /VAULT/RECEIPTS/solnfx-events.jsonl
+/VAULT/RECEIPTS/solnfx-handshake-sessions.jsonl

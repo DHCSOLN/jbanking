@@ -173,6 +173,15 @@ class SolnFxEventLog {
     if (input.endToEndId && (typeof input.endToEndId !== 'string' || !input.endToEndId.trim())) {
       throw new Error('End-to-end ID must be a non-empty string.');
     }
+    if (input.handshakeSessionId && !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.handshakeSessionId)) {
+      throw new Error('Handshake session ID must be a UUID version 4.');
+    }
+    if (input.sessionKeyFingerprint && !/^[a-f0-9]{64}$/i.test(input.sessionKeyFingerprint)) {
+      throw new Error('Handshake key fingerprint must be a SHA-256 hex digest.');
+    }
+    if (input.endpointStateProof && !/^[a-f0-9]{64}$/i.test(input.endpointStateProof)) {
+      throw new Error('Endpoint state proof must be a SHA-256 HMAC hex digest.');
+    }
     if (input.source === 'SWIFT_GPI' && input.stage === 'SETTLED' && !input.uetr) {
       throw new Error('A UETR is required for a settled SWIFT gpi event.');
     }
@@ -188,6 +197,9 @@ class SolnFxEventLog {
       ...(input.isoMessageType ? { isoMessageType: input.isoMessageType } : {}),
       ...(input.isoStatusCode ? { isoStatusCode: input.isoStatusCode } : {}),
       ...(input.endToEndId ? { endToEndId: input.endToEndId.trim() } : {}),
+      ...(input.handshakeSessionId ? { handshakeSessionId: input.handshakeSessionId } : {}),
+      ...(input.sessionKeyFingerprint ? { sessionKeyFingerprint: input.sessionKeyFingerprint.toLowerCase() } : {}),
+      ...(input.endpointStateProof ? { endpointStateProof: input.endpointStateProof.toLowerCase() } : {}),
       observedAt: new Date(input.observedAt).toISOString()
     };
   }

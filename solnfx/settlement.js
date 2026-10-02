@@ -13,6 +13,17 @@ function getOverallStatus(gpi, pmi) {
     return 'SETTLED';
   }
   if (stages.every((stage) => stage === 'HANDSHAKE_CONFIRMED')) {
+    const hasSessionLink = gpi.latestHandshakeSessionId || pmi.latestHandshakeSessionId ||
+      gpi.latestSessionKeyFingerprint || pmi.latestSessionKeyFingerprint;
+    if (
+      hasSessionLink &&
+      (!gpi.latestHandshakeSessionId || !pmi.latestHandshakeSessionId ||
+        gpi.latestHandshakeSessionId !== pmi.latestHandshakeSessionId ||
+        !gpi.latestSessionKeyFingerprint || !pmi.latestSessionKeyFingerprint ||
+        gpi.latestSessionKeyFingerprint !== pmi.latestSessionKeyFingerprint)
+    ) {
+      return 'HANDSHAKE_MISMATCH';
+    }
     return 'HANDSHAKE_CONFIRMED';
   }
   if (stages.every((stage) => stage === null)) {
