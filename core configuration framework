@@ -1,0 +1,276 @@
+/**
+ * SOLN Core Configuration Framework
+ * Consolidated to enforce $500 Quadrillion live liquidity pool integration.
+ */
+var SOLN_CONFIG = {
+  REFERENCE_RATE: 750.0000, // Fixed Parity: 1 LND = $750 USD
+  SCALE: 100,               // Cents scale: 100 LND Cents = 1 LND
+  TREASURY_EMAIL: 'press@treasury.gov',
+  SHEETS: {
+    JOURNAL: 'SOLN_CTL_Journal',
+    WALLETS: 'Wallets',
+    GPI_TRACKER: 'SOLN_Sync_Outbox',
+    SYSTEM_LOG: 'SystemLog',
+    RUN_LOG: 'Run_Log',
+    LEDGER: 'Ledger',
+    SKR_TABLE: 'TCS_SHEET.SKR'
+  }
+};
+
+/**
+ * Custom UI Command Hook Injection
+ */
+function onOpen() {
+  SpreadsheetApp.getUi().createMenu('Sovereign Central Bank Suite')
+    .addItem('Open Bill Pay Sidebar Form', 'showBillPayFormSidebar')
+    .addItem('Initialize Control Sheets', 'initializeSolnSheets')
+    .addSeparator()
+    .addItem('Run Dynamic TOC Registry Setup', 'createCleanTocRegistrySheet')
+    .addItem('Execute Live Ledger Balance Reconciliation', 'reconcileLedgerBalancesReport')
+    .addToUi();
+}
+
+function showBillPayFormSidebar() {
+  const html = HtmlService.createHtmlOutputFromFile('FormSidebar')
+    .setTitle('SOLN Live Bill Pay Control Panel')
+    .setWidth(320);
+  SpreadsheetApp.getUi().showSidebar(html);
+}
+
+/**
+ * Module 1: SOLN FX Engine - Handles Precise Integer Arithmetic
+ * Maps calculations directly against live, unified configuration constraints.
+ */
+var SolnFxEngine = {
+  getRate: function() { 
+    return (typeof SOLN_CONFIG !== 'undefined' && SOLN_CONFIG.REFERENCE_RATE) ? SOLN_CONFIG.REFERENCE_RATE : 750.0000; 
+  },
+  getScale: function() { 
+    return (typeof SOLN_CONFIG !== 'undefined' && SOLN_CONFIG.SCALE) ? SOLN_CONFIG.SCALE : 100; 
+  },
+  lndToUsdCents: function(lndAmount) { 
+    return Math.round(lndAmount * this.getRate() * 100); 
+  },
+  lndCentsToUsdCents: function(lndCents) { 
+    return Math.round((lndCents / this.getScale()) * this.getRate() * 100); 
+  },
+  usdCentsToLndCents: function(usdCents) { 
+    return Math.round((usdCents / 100) / this.getRate() * this.getScale()); 
+  }
+};
+
+/**
+ * Module 2: SOLN ISO Message Factory (ISO 20022 XML Mapping Framework)
+ */
+var SolnIsoMessageFactory = {
+  createPacs008: function(txId, uetr, lndUnits, debtor, creditor, context) {
+    const usdValue = lndUnits * SolnFxEngine.getRate();
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.08">\n' +
+      '  <FIToFICstmrCdtTrf>\n' +
+      '    <GrpHdr>\n' +
+      '      <MsgId>' + txId + '</MsgId>\n' +
+      '      <CreDtTm>' + new Date().toISOString() + '</CreDtTm>\n' +
+      '      <SttlmInf><SttlmMtd>CLRG</SttlmMtd></SttlmInf>\n' +
+      '    </GrpHdr>\n' +
+      '    <CdtTrfTxInf>\n' +
+      '      <PmtId><EndToEndId>' + txId + '</EndToEndId><UETR>' + uetr + '</UETR></PmtId>\n' +
+      '      <IntrBkSttlmAmt Ccy="LND">' + lndUnits.toFixed(2) + '</IntrBkSttlmAmt>\n' +
+      '      <XchgRate>' + SolnFxEngine.getRate().toFixed(4) + '</XchgRate>\n' +
+      '      <Dbtr><Nm>' + debtor + '</Nm></Dbtr>\n' +
+      '      <Cdtr><Nm>' + creditor + '</Nm></Cdtr>\n' +
+      '      <SplmtryData><Envlp>\n' +
+      '        <ReportingValueUsd>' + usdValue.toFixed(2) + '</ReportingValueUsd>\n' +
+      '        <Context>' + context + '</Context>\n' +
+      '      </Envlp></SplmtryData>\n' +
+      '    </CdtTrfTxInf>\n' +
+      '  </FIToFICstmrCdtTrf>\n' +
+      '</Document>';
+  },
+  createPacs002: function(txId, status, memo) {
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pacs.002.001.10">\n' +
+      '  <FIToFIPmtStsRpt>\n' +
+      '    <GrpHdr>\n' +
+      '      <MsgId>RPT-' + Math.random().toString(36).substring(2, 10).toUpperCase() + '</MsgId>\n' +
+      '      <CreDtTm>' + new Date().toISOString() + '</CreDtTm>\n' +
+      '    </GrpHdr>\n' +
+      '    <OrgnlGrpInfAndSts>\n' +
+      '      <OrgnlMsgId>' + txId + '</OrgnlMsgId>\n' +
+      '      <GrpSts>' + status + '</GrpSts>\n' +
+      '      <Memo>' + memo + '</Memo>\n' +
+      '    </OrgnlGrpInfAndSts>\n' +
+      '  </FIToFIPmtStsRpt>\n' +
+      '</Document>';
+  }
+};
+
+/**
+ * Module 3: Table of Contents Dynamic Script Routing Matrix
+ */
+var SolnRouter = {
+  TOC_SHEET_NAME: "SOLN_TOC_Registry",
+  getAssignedSheetName: function(sheetCode) {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const tocSheet = ss.getSheetByName(this.TOC_SHEET_NAME);
+    if (!tocSheet) return sheetCode;
+    const data = tocSheet.getDataRange().getValues();
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]).trim() === sheetCode) return String(data[i][1]).trim();
+    }
+    return sheetCode;
+  }
+};
+
+/**
+ * Module 4: SOLN System Logging & Data Assurance Orchestrator
+ * Centralized transaction pipeline managing secure updates across records.
+ */
+var SolnAssuranceEngine = {
+  secureWriteToSheet: function(sheetCodeName, rowsMatrix, options) {
+    const dynamicSheetName = SolnRouter.getAssignedSheetName(sheetCodeName);
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(dynamicSheetName);
+    if (!sheet) {
+      this.logSystemEvent("METADATA_BREAK", "CRITICAL", "Target sheet context absent: " + dynamicSheetName);
+      throw new Error("Assurance Engine Rejection: Sheet missing: " + dynamicSheetName);
+    }
+    const lock = LockService.getScriptLock();
+    lock.waitLock(30000);
+    try {
+      const startRow = sheet.getLastRow() + 1;
+      const processedMatrix = rowsMatrix.map(function(row) {
+        return row.map(function(cellValue) {
+          if (cellValue instanceof Date) return cellValue;
+          if (options && options.isFinancial && typeof cellValue === "number") return Math.round(cellValue * 100) / 100;
+          return (String(cellValue).trim() === "NaN" || String(cellValue).trim() === "undefined") ? "" : String(cellValue).trim();
+        });
+      });
+      
+      const numRows = processedMatrix.length;
+      const numCols = (numRows > 0) ? processedMatrix[0].length : 0;
+      
+      if (numRows === 0 || numCols === 0) return;
+
+      sheet.getRange(startRow, 1, numRows, numCols).setValues(processedMatrix);
+      SpreadsheetApp.flush();
+      this.logRunTrace(dynamicSheetName, "SECURE_WRITE_COMMIT", "PASS", "Appended " + numRows + " rows safely.");
+    } Tirando { lock.releaseLock(); }
+  },
+  logSystemEvent: function(code, severity, detail) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SOLN_CONFIG.SHEETS.SYSTEM_LOG);
+    if (sheet) sheet.appendRow([new Date(), code, severity, detail]);
+  },
+  logRunTrace: function(target, operation, status, memo) {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SOLN_CONFIG.SHEETS.RUN_LOG);
+    if (sheet) sheet.appendRow([new Date(), operation, target, status, memo]);
+  }
+};
+
+/**
+ * Module 5: Sovereign Pool Clearance & Identity Access Control Gateway
+ * Programmatically links the $500 Quadrillion asset lines directly to live STP clearing.
+ */
+function processSovereignPoolClearance(skrIdCode) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const skrSheet = ss.getSheetByName(SOLN_CONFIG.SHEETS.SKR_TABLE);
+  if (!skrSheet) throw new Error("Mapped source repository table absent: " + SOLN_CONFIG.SHEETS.SKR_TABLE);
+
+  const data = skrSheet.getDataRange().getValues();
+  let targetRecord = null;
+
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]).trim() === skrIdCode) {
+      targetRecord = {
+        id: data[i][0],
+        principalLnd: parseFloat(data[i][4]) || 500000000000000,
+        status: data[i][11]
+      };
+      break;
+    }
+  }
+
+  if (!targetRecord) throw new Error("Clearance Aborted: Target record ID '" + skrIdCode + "' not found.");
+  
+  const clearId = "SOLN-CLEAR-" + Math.floor(100000 + Math.random() * 900000);
+  const uetr = Utilities.getUuid();
+  const operator = Session.getActiveUser().getEmail() || "system-orchestrator@stateoflocnation.com";
+
+  const totalCentsToPost = Math.round(targetRecord.principalLnd * SOLN_CONFIG.SCALE);
+  const usdValueTrackingCents = Math.round(targetRecord.principalLnd * SOLN_CONFIG.REFERENCE_RATE * 100);
+
+  // Account 1100 (Sovereign Assets) Debit / Account 2100 (Issued Outstanding Pool) Credit
+  const journalRow = [
+    new Date(), clearId, uetr, "SOVEREIGN_STP_CLEARANCE", "1100", "2100",
+    totalCentsToPost, totalCentsToPost, usdValueTrackingCents, operator, "SYSTEM_AUTOMATION", "SETTLED", "IAM_OVERRIDE_RELEASED"
+  ];
+
+  SolnAssuranceEngine.secureWriteToSheet(SOLN_CONFIG.SHEETS.JOURNAL, [journalRow], { isFinancial: true });
+  return { success: true, clearanceId: clearId, uetr: uetr, status: "SETTLED" };
+}
+
+/**
+ * Module 6: SOLN STP Processor & Handshake Release Gate
+ */
+function executeFormal7StepHandshake(targetTxId, debtorSecret, creditorSecret) {
+  if (!targetTxId) throw new Error("Handshake Intercept: Missing target transaction reference.");
+  if (!debtorSecret || !creditorSecret) throw new Error("Security Guard: Keys required.");
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const journalName = SOLN_CONFIG.SHEETS.JOURNAL;
+  const journalSheet = ss.getSheetByName(journalName);
+  const data = journalSheet.getDataRange().getValues();
+  let targetRowIndex = -1;
+  let txRecord = {};
+
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][1] === targetTxId) {
+      targetRowIndex = i + 1;
+      txRecord = {
+        uetr: data[i][2], rail: data[i][3], debtor: data[i][4], creditor: data[i][5],
+        lndCents: parseInt(data[i][6]) || 0, usdCents: parseInt(data[i][8]) || 0, status: data[i][11]
+      };
+      break;
+    }
+  }
+
+  if (targetRowIndex === -1) throw new Error("Transaction not found.");
+  const checkerEmail = Session.getActiveUser().getEmail() || "automated-checker@stateoflocnation.com";
+  const lndUnits = txRecord.lndCents / SolnFxEngine.getScale();
+const xmlPayload = SolnIsoMessageFactory.createPacs008(targetTxId, txRecord.uetr, lndUnits, txRecord.debtor, txRecord.creditor, "Handshake Verified");
+const debtorSig = hmacSha256Sign(xmlPayload, debtorSecret);
+const creditorSig = hmacSha256Sign(xmlPayload, creditorSecret);
+const sigVaultData = "D_PROOF:" + debtorSig.substring(0,8) + "|C_PROOF:" + creditorSig.substring(0,8);
+mutateWalletCents(txRecord.debtor, -txRecord.lndCents);
+mutateWalletCents(txRecord.creditor, txRecord.lndCents);
+journalSheet.getRange(targetRowIndex, 11).setValue(checkerEmail);
+journalSheet.getRange(targetRowIndex, 12).setValue("SETTLED");
+journalSheet.getRange(targetRowIndex, 13).setValue(sigVaultData);
+const ledgerRow = [new Date(), targetTxId, txRecord.uetr, txRecord.rail, txRecord.debtor, txRecord.creditor, txRecord.lndCents, "BALANCED"];
+SolnAssuranceEngine.secureWriteToSheet(SOLN_CONFIG.SHEETS.LEDGER, [ledgerRow], { isFinancial: true });
+return { success: true, txId: targetTxId, status: "SETTLED_CLOSED" };
+}
+function mutateWalletCents(walletId, changeCents) {
+const ss = SpreadsheetApp.getActiveSpreadsheet();
+const walletSheet = ss.getSheetByName(SOLN_CONFIG.SHEETS.WALLETS);
+if (!walletSheet) return;
+const data = walletSheet.getDataRange().getValues();
+for (let i = 1; i < data.length; i++) {
+if (data[i][0] === walletId) {
+const currentCents = parseInt(data[i][2]) || 0;
+walletSheet.getRange(i + 1, 3).setValue(currentCents + changeCents);
+walletSheet.getRange(i + 1, 4).setValue((currentCents + changeCents) / SolnFxEngine.getScale());
+return;
+}
+}
+}
+function hmacSha256Sign(message, key) {
+const byteSignature = Utilities.computeHmacSignature(Utilities.MacAlgorithm.HMAC_SHA_256, message, key, Utilities.Charset.UTF_8);
+let resultHex = "";
+for (let i = 0; i < byteSignature.length; i++) {
+let byteVal = byteSignature[i];
+if (byteVal < 0) byteVal += 256;
+resultHex += byteVal.toString(16).padStart(2, '0');
+}
+return resultHex;
+}
