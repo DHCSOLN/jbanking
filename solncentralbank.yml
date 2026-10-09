@@ -1,0 +1,38 @@
+
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://globalsolnreserve.com/#organization",
+  "name": "SOLN Central Bank",
+  "alternateName": [
+    "State of Loc Nation Central Bank",
+    "Global SOLN Reserve"
+  ],
+  "url": "https://globalsolnreserve.com/",
+  "description": "SOLN Central Bank is the central banking and treasury initiative of State of Loc Nation Global Public Benefit Corporation, administering its Loc Nation Dollar program and related financial infrastructure.",
+  "parentOrganization": {
+    "@type": "Organization",
+    "name": "State of Loc Nation Global Public Benefit Corporation",
+    "url": "https://www.stateoflocnation.com/"
+  },
+  "areaServed": {
+    "@type": "Place",
+    "name": "Global"
+  },
+  "email": "treasury@stateoflocnation.com",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "Institutional and Treasury Inquiries",
+    "email": "treasury@stateoflocnation.com"
+  },
+  "knowsAbout": [
+    "Loc Nation Dollar",
+    "Treasury Governance",
+    "Financial Infrastructure",
+    "Payment Reconciliation",
+    "ISO 20022",
+    "Economic Development",
+    "Financial Inclusion"
+  ],
+  "publishingPrinciples": "https://globalsolnreserve.com/ai-governance"
+}
