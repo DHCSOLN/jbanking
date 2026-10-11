@@ -1,0 +1,32 @@
+/**
+ * STP Integration Tester: Pushes a mock JSON packet through the public public gateway.
+ * This simulates a true network request, preventing the 'postData' TypeError.
+ */
+function runHybridGatewayProductionTest() {
+  // Replace this with your active deployed webapp URL (ending in /exec)
+  const deployedGatewayUrl = "https://script.google.com/macros/s/AKfycbxL95nl8ly6B-nk6yCU-VZka5QaEQc5bUJ7XN8xz2XLF5Q7pieG7skUSB7-m-05QUrh/exec"; 
+  
+  const mockJsonRequest = {
+    authToken: "EXT-PARTNER-GATEWAY-INBOUND-NET",
+    transactionId: "SOLN-TX-HYBRID-PASS-77",
+    uetr: "ca43acc6-20e5-4240-94b4-6a0034dd7e08",
+    amount: 133386.65,
+    currency: "USD",
+    status: "ACSP",
+    source: "EXTERNAL_PARTNER_INTEGRATION_NODE",
+    handle: "SLNABC00"
+  };
+  
+  const options = {
+    "method": "post",
+    "contentType": "application/json",
+    "payload": JSON.stringify(mockJsonRequest),
+    "muteHttpExceptions": true
+  };
+  
+  Logger.log("📡 Streaming verification packet to hybrid ingress gateway...");
+  const response = UrlFetchApp.fetch(deployedGatewayUrl, options);
+  
+  Logger.log("📥 HTTP Response Code: " + response.getResponseCode());
+  Logger.log("📊 Ledger Finality Result: " + response.getContentText());
+}
