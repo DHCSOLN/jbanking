@@ -1,0 +1,9 @@
+https://sandbox.api.visa.com/src/v1/identities/lookup
+{
+  "srcClientId": "string",
+  "consumerIdentity": {
+    "identityType": "EMAIL_ADDRESS",
+    "identityValue": "string",
+    "identityProvider": "SRC"
+  }
+}
