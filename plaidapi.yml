@@ -1,0 +1,9 @@
+request = SignalEvaluateRequest(
+  access_token="access-sandbox-71e02f71-0960-4a27-abd2-5631e04f2175",
+  account_id="3gE5gnRzNyfXpBK5wEEKcymJ5albGVUqg77gr",
+  client_transaction_id="txn12345",
+  amount=123.45,
+  ruleset_key="normal_risk"
+)
+response = client.signal_evaluate(request)
+result = response['ruleset']['result']
