@@ -1,0 +1,13 @@
+{
+  "client_id": "$PLAID_CLIENT_ID",
+  "secret": "$PLAID_SECRET",
+  "institution_id": "ins_20",
+  "initial_products": [
+    "auth"
+  ],
+  "options": {
+    "webhook": "https://www.genericwebhookurl.com/webhook",
+    "override_username": "custom_restitution_wallet_usd",
+    "override_password": "pass_good"
+  }
+}
