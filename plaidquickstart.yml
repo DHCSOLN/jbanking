@@ -1,0 +1,30 @@
+cp .env.example .env
+{
+  "client_id": "6a9ccca1f610f4000d582f2c",
+  "secret": "aebc899e4cf25fa4c2e953ef7c6dab",
+  "institution_id": "ins_20",
+  "initial_products": [
+    "auth"
+  ],
+  "options": {
+    "webhook": "https://github.com/plaid/quickstart",
+    "override_username": "custom_restitution_wallet_usd",
+    "override_password": "pass_good"
+  }
+}
+git clone https://github.com/plaid/quickstart
+cd quickstart
+cd ./python
+
+# If you use virtualenv
+# virtualenv venv
+# source venv/bin/activate
+
+pip3 install -r requirements.txt
+./start.sh
+cd ./java
+mvn clean package
+./start.sh
+cd ./frontend
+npm ci
+npm start
